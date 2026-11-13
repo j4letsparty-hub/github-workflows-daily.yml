@@ -1,0 +1,30 @@
+name: Daily kids videos
+
+on:
+  schedule:
+    - cron: "0 1 * * *"     # runs daily at 01:00 UTC
+  workflow_dispatch:         # lets you run it manually from the Actions tab
+
+jobs:
+  build:
+    runs-on: ubuntu-latest   # FFmpeg is preinstalled on this runner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Build and upload
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          UPLOAD: "0"        # keep "0" while testing; change to "1" to go live
+        run: python daily_channel.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: videos
+          path: videos/
+          retention-days: 3
